@@ -1,0 +1,25 @@
+{
+  "name": "webui",
+  "version": "1.0.0",
+  "main": "solid.config.js",
+  "scripts": {
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "vite": "^5.4.9",
+    "vite-plugin-solid": "^2.10.2"
+  },
+  "dependencies": {
+    "@solidjs/router": "^0.15.1",
+    "bulma": "^1.0.2",
+    "marked": "^15.0.4",
+    "prismjs": "^1.29.0",
+    "prop-types": "^15.8.1",
+    "solid-js": "^1.8.22"
+  }
+}

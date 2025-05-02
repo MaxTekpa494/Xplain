@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>fr.uge.Xplain</groupId>
+    <artifactId>Xplain</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <compiler-plugin.version>3.13.0</compiler-plugin.version>
+        <maven.compiler.release>23</maven.compiler.release>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.version>3.14.2</quarkus.platform.version>
+        <skipITs>true</skipITs>
+        <surefire-plugin.version>3.3.1</surefire-plugin.version>
+        <jlama.version>0.8.2</jlama.version>
+        <logback.version>1.5.13</logback.version>
+
+        <!-- Info relative au telechargement du model -->
+        <models.owner>tjake</models.owner>
+        <models.branch>main</models.branch>
+        <!-- Propriétés pour chaque modèle -->
+        <yi_coder.name>Yi-Coder-1.5B-Chat-Jlama</yi_coder.name>
+        <mistral.name>Mistral-7B-Instruct-v0.3-Jlama-Q4</mistral.name>
+        <llama.name>Llama-3.2-3B-Instruct-JQ4</llama.name>
+        <modelsdir>./models/${models.owner}</modelsdir>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>${quarkus.platform.artifact-id}</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <!-- Documentation et OpenAPI -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-swagger-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-openapi</artifactId>
+        </dependency>
+
+        <!-- Core Quarkus Features -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-agroal</artifactId>
+        </dependency>
+
+        <!-- WebSockets -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-websockets</artifactId>
+            <version>3.17.3</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-websockets-client</artifactId>
+            <version>3.17.3</version>
+        </dependency>
+
+        <!-- Base de Données (Jdbi et HSQLDB) -->
+        <!-- https://mvnrepository.com/artifact/org.jdbi/jdbi3-core -->
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+            <version>3.45.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jdbi/jdbi3-sqlobject -->
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-sqlobject</artifactId>
+            <version>3.45.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.7.3</version>
+        </dependency>
+
+        <!-- JSON et Sérialisation -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-jackson</artifactId>
+        </dependency>
+
+        <!-- LLM Integration -->
+        <!-- https://mvnrepository.com/artifact/de.kherud/llama -->
+        <dependency>
+            <groupId>de.kherud</groupId>
+            <artifactId>llama</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.tjake/jlama-native -->
+        <dependency>
+            <groupId>com.github.tjake</groupId>
+            <artifactId>jlama-core</artifactId>
+            <version>${jlama.version}</version>
+        </dependency>
+
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+
+        <!-- Quarkus Extensions -->
+        <!-- https://mvnrepository.com/artifact/io.quarkiverse.quinoa/quarkus-quinoa -->
+        <dependency>
+            <groupId>io.quarkiverse.quinoa</groupId>
+            <artifactId>quarkus-quinoa</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-virtual-threads</artifactId>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.rest-assured/rest-assured -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>Xplain</finalName>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <plugin>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                        <arg>--add-modules=jdk.incubator.vector</arg>
+                    </compilerArgs> <!-- Arguments obligatoires pour faire fonctionné Jlama -->
+                    <jvmArgs>--add-modules=jdk.incubator.vector --enable-native-access=ALL-UNNAMED --enable-preview</jvmArgs>
+                </configuration>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                            <goal>generate-code-tests</goal>
+                            <goal>native-image-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <parameters>true</parameters>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>download-models</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${project.build.directory}/dependency/ant-contrib-1.0b3.jar"/>
+                                <!-- Définition des propriétés pour les chemins -->
+<!--                                <property name="modelsdir" value="${project.build.directory}/quarkus-app/models/${models.owner}"/>-->
+
+                                <!--                                <property name="modelsdir" value="${project.build.directory}/models/${models.owner}"/>-->
+
+                                <!-- Création des répertoires -->
+                                <mkdir dir="${modelsdir}/${yi_coder.name}"/>
+                                <mkdir dir="${modelsdir}/${mistral.name}"/>
+                                <mkdir dir="${modelsdir}/${llama.name}"/>
+
+                                <!-- Téléchargement parallel -->
+                                <parallel threadCount="3">
+                                    <!-- TinyLlama -->
+                                    <sequential>
+                                        <if>
+                                            <not><available file="${modelsdir}/${llama.name}/config.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${llama.name}/resolve/${models.branch}/config.json"
+                                                     dest="${modelsdir}/${llama.name}/config.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${llama.name}/tokenizer.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${llama.name}/resolve/${models.branch}/tokenizer.json"
+                                                     dest="${modelsdir}/${llama.name}/tokenizer.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${llama.name}/tokenizer_config.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${llama.name}/resolve/${models.branch}/tokenizer_config.json"
+                                                     dest="${modelsdir}/${llama.name}/tokenizer_config.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${llama.name}/model.safetensors"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${llama.name}/resolve/${models.branch}/model.safetensors"
+                                                     dest="${modelsdir}/${llama.name}/model.safetensors"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                    </sequential>
+
+                                    <!-- Llama -->
+                                    <sequential>
+                                        <if>
+                                            <not><available file="${modelsdir}/${yi_coder.name}/config.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${yi_coder.name}/resolve/${models.branch}/config.json"
+                                                     dest="${modelsdir}/${yi_coder.name}/config.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${yi_coder.name}/tokenizer.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${yi_coder.name}/resolve/${models.branch}/tokenizer.json"
+                                                     dest="${modelsdir}/${yi_coder.name}/tokenizer.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${yi_coder.name}/tokenizer_config.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${yi_coder.name}/resolve/${models.branch}/tokenizer_config.json"
+                                                     dest="${modelsdir}/${yi_coder.name}/tokenizer_config.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${yi_coder.name}/model.safetensors"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${yi_coder.name}/resolve/${models.branch}/model.safetensors"
+                                                     dest="${modelsdir}/${yi_coder.name}/model.safetensors"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                    </sequential>
+
+                                    <!--Mistral -->
+                                    <sequential>
+                                        <if>
+                                            <not><available file="${modelsdir}/${mistral.name}/config.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${mistral.name}/resolve/${models.branch}/config.json"
+                                                     dest="${modelsdir}/${mistral.name}/config.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${mistral.name}/tokenizer.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${mistral.name}/resolve/${models.branch}/tokenizer.json"
+                                                     dest="${modelsdir}/${mistral.name}/tokenizer.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${mistral.name}/tokenizer_config.json"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${mistral.name}/resolve/${models.branch}/tokenizer_config.json"
+                                                     dest="${modelsdir}/${mistral.name}/tokenizer_config.json"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                        <if>
+                                            <not><available file="${modelsdir}/${mistral.name}/model.safetensors"/></not>
+                                            <then>
+                                                <get src="https://huggingface.co/${models.owner}/${mistral.name}/resolve/${models.branch}/model.safetensors"
+                                                     dest="${modelsdir}/${mistral.name}/model.safetensors"
+                                                     skipexisting="true"/>
+                                            </then>
+                                        </if>
+                                    </sequential>
+                                </parallel>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <!-- Pour les tâches conditionnelles (if/then) -->
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant-launcher</artifactId>
+                        <version>1.10.15</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant-commons-net</artifactId>
+                        <version>1.10.15</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>ant-contrib</groupId>
+                        <artifactId>ant-contrib</artifactId>
+                        <version>1.0b3</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>ant</groupId>
+                                <artifactId>ant</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <!-- Plugin pour les tests unitaires -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                    <argLine>-Djdk.tracePinnedThreads</argLine>
+                </configuration>
+            </plugin>
+
+            <!-- Plugin pour les tests d'intégration -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                    <argLine>-Djdk.tracePinnedThreads</argLine>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.tjake</groupId>
+                    <artifactId>jlama-native</artifactId>
+                    <version>${jlama.version}</version>
+                    <classifier>linux-x86_64</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- Profil pour macOS -->
+        <profile>
+            <id>macos</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.tjake</groupId>
+                    <artifactId>jlama-native</artifactId>
+                    <version>0.8.2</version>
+                    <classifier>osx-x86_64</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- Profil pour Windows x86_64 -->
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.tjake</groupId>
+                    <artifactId>jlama-native</artifactId>
+                    <version>0.8.2</version>
+                    <classifier>windows-x86_64</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>
